@@ -1,68 +1,71 @@
 import numpy as np
 import pandas as p
+from pymongo import MongoClient
 
+mongo = MongoClient()
 
-menQuestions = [
-    ['Tu profe tiene barba?', 'haveBeard'],
-    ['Tu profe tiene bigote?', 'haveMoustache'],
-    ['Tu profe tiene canas?', 'haveGreyHair'],
-    ['Tu profe usa lentes?', 'useGlasses'],
-    ['Tu profe es de piel morena?', 'isNigga'],
-    ['Tu profe es alto?', 'isTall'],
-    ['Tu profe es doctor?', 'isDoctor']
-]
+character = mongo.Expsys.character
 
-womenQuestions = [
-    ['Tu maestra tiene cabello largo?', 'haveLongHair'],
-    ['Tu maestra tiene cabello chino?', 'haveCurlyHair'],
-    ['Tu maestra es rubia?', 'isBlonde'],
-    ['Tu profe usa lentes?', 'useGlasses'],
-    ['Tu profe es de piel morena?', 'isNigga'],
-    ['Tu profe es alta?', 'isTall']
-]
+def addCharacter(data):
+    character.insert(data)
+    return('%s added!' % data['name'])
 
-men = p.Series(['Jaime', 'Horacio', 'Hugo', 'Leopoldo', 'Marban', 'Uribe', 'Mata', 'Gil', 'Peraza', 'Omar', 'Chapito', 'Jefe Banda', 'Camacho'])
+def getNames():
+    names = [char['name'] for char in character.find()]
+    return names
 
-women = p.Series(['Dalia', 'Anita', 'Lupita', 'Alba', 'Claudia', 'Chi', 'Antonieta', 'Vicky', 'Miss There'])
+def getColums():
+    col = []
+    for char in character.find():
+        for val in char:
+            if val != 'name' and val != '_id' and (val not in col):
+                col.append(val)
+    return col
 
-columnsMen = ['haveBeard', 'haveMoustache', 'haveGreyHair', 'useGlasses', 'isNigga', 'isTall', 'isDoctor']
+def matrixData():
+    matrix = []
+    serie = []
+    for char in character.find():
+        for val in char:
+            if val != 'name' and val != '_id':
+                serie.append(char[val])
+        matrix.append(serie)
+        serie = []
+    return matrix
 
-columnsWomen = ['haveLongHair', 'haveCurlyHair', 'isBlonde', 'useGlasses', 'isNigga', 'isTall']
+def getMatrix():
+    matrix = p.DataFrame(matrixData(), index=getNames(), columns=getColums())
+    return matrix
 
-dataMen = [
-    [True, False, False, True, False, True, False],
-    [True, False, True, False, True, False, False],
-    [True, False, False, False, False, True, False],
-    [False, True, False, True, True, True, False],
-    [False, True, True, True, True, False, False],
-    [False, False, True, False, True, True, False],
-    [False, False, True, True, True, True, False],
-    [False, False, False, False, False, False, False],
-    [False, False, True, False, False, False, True],
-    [True, False, True, False, False, True, True],
-    [False, True, False, False, False, False, False],
-    [False, False, False, False, False, True, False],
-    [False, False, True, False, False, False, False],
-]
+def menQuestions():
+    menQuestions = [
+        ['Tu profe tiene vello facial?', 'haveFacialHair'],
+        ['Tu profe tiene canas?', 'haveGreyHair'],
+        ['Tu profe usa lentes?', 'useGlasses'],
+        ['Tu profe es de piel morena?', 'isNigga'],
+        ['Tu profe es alto?', 'isTall'],
+        ['Tu profe es doctor?', 'isDoctor']
+    ]
+    return menQuestions
 
-dataWoman = [
-    [True, False, False, False, False, False],
-    [True, False, False, False, True, False],
-    [True, True, True, True, False, True],
-    [True, False, False, True, False, True],
-    [True, True, False, False, True, False],
-    [True, False, False, False, False, True],
-    [False, True, True, False, False, False],
-    [False, True, False, False, True, False],
-    [False, False, False, False, False, False]
-]
+def womenQuestions():
+    womenQuestions = [
+        ['Tu maestra tiene cabello largo?', 'haveLongHair'],
+        ['Tu maestra tiene cabello chino?', 'haveCurlyHair'],
+        ['Tu maestra es rubia?', 'isBlonde'],
+        # ['Tu profe usa lentes?', 'useGlasses'],
+        ['Tu profe es de piel morena?', 'isNigga'],
+        ['Tu profe es alta?', 'isTall']
+    ]
+    return womenQuestions
 
-dfMen = p.DataFrame(dataMen, index=men, columns=columnsMen)
-
-dfWomen = p.DataFrame(dataWoman, index=women, columns=columnsWomen)
-
-# print(dfMen.describe())
-# print(dfWomen.describe())
-
-
-# print(dfMen[dfMen['haveGreyHair'].isin([True])])
+# x = 0.4
+# for x in range(0, 10):
+#     print('-', end='\r')
+#     t.sleep(x)
+#     print('\\', end='\r')
+#     t.sleep(x)
+#     print('|', end='\r')
+#     t.sleep(x)
+#     print('/', end='\r')
+#     t.sleep(x)
