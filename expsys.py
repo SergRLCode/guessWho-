@@ -1,9 +1,23 @@
 from Character import Character
 from pyknow import *
+from tkinter import *
+from PIL import Image, ImageTk
 from pyknow.fact import *
 import random as r
 from data import *
 import os
+
+class Window(Frame):
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
+        self.master = master
+        self.pack(fill=BOTH, expand=1)
+        
+        samuel = Image.open("samuelLike.png")
+        render = ImageTk.PhotoImage(samuel)
+        img = Label(self, image=render)
+        img.image = render
+        img.place(x=0, y=0)
 
 class TotalQuestions(Fact):
     total_questions = Field(int, default = 0)
@@ -23,6 +37,13 @@ class GuessWho(KnowledgeEngine):
         print("You'll choose YES (y) or NO (n)")
         is_woman = input('1.- Tu maestre es mujer? ').upper().startswith('Y')
         self.questions = list()
+        self.hairColorQuestions = [
+            ['Tu maestre tiene el cabello de color extravagante?', 'haveFlamboyantColorHair'],
+            ['Tu maestre tiene el cabello de color rubio?', 'isBlonde'],
+            ['Tu maestre tiene el cabello de color pelirrojo?', 'isRedhead'],
+            ['Tu maestre tiene canas?', 'haveGreyHair'],
+            ['Tu maestre tiene el cabello de color cafe?', 'haveBrownHair']
+        ]
         if not is_woman:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([False])]
             # print(self.matrix)
@@ -55,7 +76,8 @@ class GuessWho(KnowledgeEngine):
         answer = input('%s.- %s ' % (tq+2, self.questions[tq][0])).upper().startswith('Y')
         self.matrix = self.matrix[self.matrix[self.questions[tq][1]] == answer]
         self.modify(nq, total_questions=tq+1)
-        # print(self.matrix)
+        if("canas" in self.questions[tq][0] or "color" in self.questions[tq][0] and answer == False):
+            self.declare(Action('add-hair-color-questions'))
         if("vello facial" in self.questions[tq][0] and answer == True):
             self.declare(Action('add-more-questions-about-facial-hair'))
         if(len(self.matrix)==1):
@@ -63,6 +85,21 @@ class GuessWho(KnowledgeEngine):
 
     @Rule(AS.f1 << Action('next-question'))
     def _human_choice(self, f1):
+        self.retract(f1)
+        self.declare(Action('next-question'))
+
+    @Rule(Action('add-hair-color-questions'),
+            AS.f1 << Action('next-question'),
+            AS.nq << TotalQuestions(total_questions=MATCH.tq))
+    def add_questions(self, f1, nq, tq):
+        self.retract(f1)
+        print(len(self.hairColorQuestions))
+        selected = r.randint(0, len(self.hairColorQuestions)-1)
+        self.questions.insert(tq, self.hairColorQuestions[selected])
+        del self.hairColorQuestions[selected]
+
+    @Rule(AS.f1 << Action('add-hair-color-questions'))
+    def _add_questions(self, f1):
         self.retract(f1)
         self.declare(Action('next-question'))
 
@@ -84,7 +121,13 @@ class GuessWho(KnowledgeEngine):
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def guessing_character(self, f1, nq, tq):
         self.retract(f1)
-        print('En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]))
+        root = Tk()
+        app = Window(root)
+        root.wm_title("Tkinter window")
+        w = Label(root, text='En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]), font=("Helvetica", 16))
+        w.pack()
+        root.geometry("600x349")
+        root.mainloop()
         self.halt()
 
 if __name__ == '__main__':
@@ -101,7 +144,6 @@ if __name__ == '__main__':
         print(main_message)
         ans = int(input('Select an option: '))
         if ans == 1:
-            # print(getMatrix())
             gw.reset()
             gw.run()
         elif ans == 2:
