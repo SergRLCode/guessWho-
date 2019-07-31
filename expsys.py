@@ -3,7 +3,6 @@ from pyknow import *
 from pyknow.fact import *
 import random as r
 from data import *
-import re as regex
 import os
 
 class TotalQuestions(Fact):
@@ -17,6 +16,7 @@ class Action(Fact):
     pass
 
 class GuessWho(KnowledgeEngine):
+    
     @DefFacts()
     def defining_questions(self):
         self.matrix = getMatrix()
@@ -25,15 +25,17 @@ class GuessWho(KnowledgeEngine):
         self.questions = list()
         if not is_woman:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([False])]
-            print(self.matrix)
-            questions = menQuestions()
+            # print(self.matrix)
+            questions = genericQuestions('profe')
+            questions.extend(menQuestions())
             r.shuffle(questions)
             for val in questions:
                 yield DefiningQuestion(question=val[0], attrib=val[1])
         else:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([True])]
-            print(self.matrix)
-            questions = womenQuestions()
+            # print(self.matrix)
+            questions = genericQuestions('maistra')
+            questions.extend(womenQuestions())
             r.shuffle(questions)
             for val in questions:
                 yield DefiningQuestion(question=val[0], attrib=val[1])
@@ -51,11 +53,11 @@ class GuessWho(KnowledgeEngine):
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def human_choice(self, nq, tq):
         answer = input('%s.- %s ' % (tq+2, self.questions[tq][0])).upper().startswith('Y')
-        self.matrix = self.matrix[self.matrix[self.questions[tq][1]].isin([answer])]
+        self.matrix = self.matrix[self.matrix[self.questions[tq][1]] == answer]
         self.modify(nq, total_questions=tq+1)
-        print(self.matrix)
+        # print(self.matrix)
         if("vello facial" in self.questions[tq][0] and answer == True):
-            self.declare(Action('add-more-questions'))
+            self.declare(Action('add-more-questions-about-facial-hair'))
         if(len(self.matrix)==1):
             self.declare(Action('guessing-character'))
 
@@ -64,7 +66,7 @@ class GuessWho(KnowledgeEngine):
         self.retract(f1)
         self.declare(Action('next-question'))
 
-    @Rule(Action('add-more-questions'),
+    @Rule(Action('add-more-questions-about-facial-hair'),
             AS.f1 << Action('next-question'),
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def addMoreQuestions(self, f1, nq, tq):
@@ -72,7 +74,7 @@ class GuessWho(KnowledgeEngine):
         self.questions.insert(tq, ['Tu profe tiene barba?', 'haveBeard'])
         self.questions.insert(tq+1, ['Tu profe tiene bigote?', 'haveMoustache'])
 
-    @Rule(AS.f1 << Action('add-more-questions'))
+    @Rule(AS.f1 << Action('add-more-questions-about-facial-hair'))
     def _add_more_questions(self, f1):
         self.retract(f1)
         self.declare(Action('next-question'))
@@ -103,25 +105,30 @@ if __name__ == '__main__':
             gw.reset()
             gw.run()
         elif ans == 2:
-            qualities = ['Is woman? ', 'Have long hair? ', 'Have curly hair? ', 'Have gray hair? ', 'Use glasses? ', 'Is nigga? ', 'Is tall? ', 'Is doctor? ']
-            nQ = []
-            nQ.append(input('Name: '))
+            qualities = ['Is woman? ', 'Looks young? ', 'Have long hair? ', 'Have curly hair? ', 'Have flamboyant color hair? ', 'Have gray hair? ', 'Have black hair? ', 'Have brown hair? ', 'Is blonde? ', 'Is redhead? ', 'Use glasses? ', 'Is nigga? ', 'Is tall? ', 'Is thin? ']
+            allAnswers = []
+            allAnswers.append(input('Name: '))
             for val in qualities:
-                nQ.append(input(val).upper().startswith('Y'))
-            if nQ[1] != True:
+                allAnswers.append(input(val).upper().startswith('Y'))
+            if allAnswers[1] != True:
                 if input('Have facial hair? ').upper().startswith('Y'):
-                    nQ.append(True)
-                    nQ.append(input('Have beard? ').upper().startswith('Y'))
-                    nQ.append(input('Have moustache? ').upper().startswith('Y'))
+                    allAnswers.append(True)
+                    allAnswers.append(input('Have beard? ').upper().startswith('Y'))
+                    allAnswers.append(input('Have moustache? ').upper().startswith('Y'))
                 else:
-                    nQ.append(False)
-                    nQ.append(False)
-                    nQ.append(False)
+                    allAnswers.append(False)
+                    allAnswers.append(False)
+                    allAnswers.append(False)
+                allAnswers.append(False)
             else:
-                nQ.append(False)
-                nQ.append(False)
-                nQ.append(False)
-            newChar = Character(nQ[0], nQ[1], nQ[2], nQ[3], nQ[4], nQ[5], nQ[6], nQ[7], nQ[8], nQ[9], nQ[10], nQ[11])
+                allAnswers.append(False)
+                allAnswers.append(False)
+                allAnswers.append(False)
+                if input('Use makeup? ').upper().startswith('Y'):
+                    allAnswers.append(True)                
+                else:
+                    allAnswers.append(False)
+            newChar = Character(allAnswers[0], allAnswers[1], allAnswers[2], allAnswers[3], allAnswers[4], allAnswers[5], allAnswers[6], allAnswers[7], allAnswers[8], allAnswers[9], allAnswers[10], allAnswers[11], allAnswers[12], allAnswers[13], allAnswers[14], allAnswers[15], allAnswers[16], allAnswers[17], allAnswers[18])
             print(addCharacter(newChar.getQualities()))
         else:
             exitGame = False

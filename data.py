@@ -37,25 +37,33 @@ def getMatrix():
     matrix = p.DataFrame(matrixData(), index=getNames(), columns=getColums())
     return matrix
 
+def genericQuestions(gender):
+    genericQuestions = [
+        ['Tu %s tiene cabello largo?'%gender, 'haveLongHair'],
+        ['Tu %s tiene cabello chino?'%gender, 'haveCurlyHair'],
+        ['Tu %s tiene canas?'%gender, 'haveGreyHair'],
+        ['Tu %s usa lentes?'%gender, 'useGlasses'],
+        ['Tu %s es de piel morena?'%gender, 'isNigga'],
+        ['Tu %s es alt%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isTall'],
+        ['El color del cabello de tu %s es extravagante?'%gender, 'haveFlamboyantColorHair'],
+        ['Tu %s es rubi%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isBlonde'],
+        ['Tu %s es se ve joven?'%gender, 'looksYoung'],
+        ['Tu %s es delgad%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isThin'],
+        ['Tu %s es pelirroj%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isRedhead'],
+        ['Tu %s tiene el cabello de color negro?'%gender, 'haveBlackHair'],
+        ['Tu %s tiene el cabello de color cafe?'%gender, 'haveBrownHair']
+    ]
+    return genericQuestions
+
 def menQuestions():
     menQuestions = [
         ['Tu profe tiene vello facial?', 'haveFacialHair'],
-        ['Tu profe tiene canas?', 'haveGreyHair'],
-        ['Tu profe usa lentes?', 'useGlasses'],
-        ['Tu profe es de piel morena?', 'isNigga'],
-        ['Tu profe es alto?', 'isTall'],
-        ['Tu profe es doctor?', 'isDoctor']
     ]
     return menQuestions
 
 def womenQuestions():
     womenQuestions = [
-        ['Tu maestra tiene cabello largo?', 'haveLongHair'],
-        ['Tu maestra tiene cabello chino?', 'haveCurlyHair'],
-        ['Tu maestra es rubia?', 'isBlonde'],
-        # ['Tu profe usa lentes?', 'useGlasses'],
-        ['Tu profe es de piel morena?', 'isNigga'],
-        ['Tu profe es alta?', 'isTall']
+        ['Tu maistra usa maquillaje?', 'useMakeup']
     ]
     return womenQuestions
 
@@ -69,3 +77,27 @@ def womenQuestions():
 #     t.sleep(x)
 #     print('/', end='\r')
 #     t.sleep(x)
+
+def colsOneAttrib(matrix):
+    attribsToDelete = []
+    for val in getColums():
+        totalTrue = 0
+        totalFalse = 0
+        for x in matrix[val]:
+            totalTrue = totalTrue+1 if x else totalTrue
+            totalFalse = totalFalse+1 if not x else totalFalse
+        if totalFalse == len(matrix[val]) or totalTrue == len(matrix[val]):
+            attribsToDelete.append(val)
+    return attribsToDelete
+
+def questionsNoSense(questions, attribsToDel):
+    _questions = list()
+    for attrib in attribsToDel:
+        for val in questions:
+            if attrib in val:
+                questions.append(val)
+    return _questions
+
+# print(deleteQuestion(genericQuestions('profe'), colsOneAttrib(getMatrix())))
+
+# deleteQuestion(self.questions, colsOneAttrib(self.matrix))
