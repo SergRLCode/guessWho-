@@ -93,7 +93,6 @@ class GuessWho(KnowledgeEngine):
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def add_questions(self, f1, nq, tq):
         self.retract(f1)
-        print(len(self.hairColorQuestions))
         selected = r.randint(0, len(self.hairColorQuestions)-1)
         self.questions.insert(tq, self.hairColorQuestions[selected])
         del self.hairColorQuestions[selected]
