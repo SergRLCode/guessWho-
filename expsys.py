@@ -7,17 +7,71 @@ import random as r
 from data import *
 import os
 
+_answerOfTheQuestionInTheDamnedWindow = bool()
+
 class Window(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master = master
         self.pack(fill=BOTH, expand=1)
-        
-        samuel = Image.open("samuelLike.png")
+        samuel = Image.open("hawk3.jpg")
         render = ImageTk.PhotoImage(samuel)
         img = Label(self, image=render)
         img.image = render
         img.place(x=0, y=0)
+
+def openForm():
+    form = Tk()
+    form.title("Add teacher")
+    frame = Frame(master=form, width=800, height=600)
+
+    propierties = ["Name: ", "Is woman?", "Looks young?", "Have long hair?", "Have curly hair?", "Have flamboyant color hair?", "Have gray hair?", "Have black hair?", "Have brown hair?", "Is blonde?", "Is redhead?", "Use glasses?", "Is nigga?", "Is tall?", "Is thin?", "Have facial hair?", "Have beard?", "Have moustache?", "Use makeup?"]
+            
+    Label(master=form, text='Yes = y, No = n').grid(column=1)
+    
+    entriesList = list()
+
+    for index in range(0, len(propierties)):
+        Label(master=form, text=propierties[index]).grid(row=index+1)
+        entriesList.append(Entry(master=form))
+        entriesList[index].grid(row=index+1, column=1)
+
+    def getData():
+        print(entriesList[0].get())
+        newChar = Character(entriesList[0].get(),
+            entriesList[1].get().upper().startswith('Y'), entriesList[2].get().upper().startswith('Y'),
+            entriesList[3].get().upper().startswith('Y'), entriesList[4].get().upper().startswith('Y'),
+            entriesList[5].get().upper().startswith('Y'), entriesList[6].get().upper().startswith('Y'),
+            entriesList[7].get().upper().startswith('Y'), entriesList[8].get().upper().startswith('Y'),
+            entriesList[9].get().upper().startswith('Y'), entriesList[10].get().upper().startswith('Y'),
+            entriesList[11].get().upper().startswith('Y'), entriesList[12].get().upper().startswith('Y'),
+            entriesList[13].get().upper().startswith('Y'), entriesList[14].get().upper().startswith('Y'),
+            entriesList[15].get().upper().startswith('Y'), entriesList[16].get().upper().startswith('Y'),
+            entriesList[17].get().upper().startswith('Y'), entriesList[18].get().upper().startswith('Y')
+        )
+        print(addCharacter(newChar.getQualities()))
+        form.destroy()
+        
+    Button(master=form, text='Add!', command=getData).grid(row=20, column=0)            
+    
+    form.mainloop()
+
+def windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko(question):
+    form = Tk()
+    form.title("Question")
+    frame = Frame(master=form, width=800, height=600)
+    Label(master=form, text=question, font=("Helvetica", 16)).grid(column=0)
+    def true():
+        global _answerOfTheQuestionInTheDamnedWindow
+        _answerOfTheQuestionInTheDamnedWindow = True
+        form.destroy()
+    def false():
+        global _answerOfTheQuestionInTheDamnedWindow
+        _answerOfTheQuestionInTheDamnedWindow = False
+        form.destroy()
+    Button(master=form, text='YES', command=true).grid(row=1, column=0)
+    Button(master=form, text='NO', command=false).grid(row=1, column=1)
+    form.mainloop()
 
 class TotalQuestions(Fact):
     total_questions = Field(int, default = 0)
@@ -34,8 +88,9 @@ class GuessWho(KnowledgeEngine):
     @DefFacts()
     def defining_questions(self):
         self.matrix = getMatrix()
-        print("You'll choose YES (y) or NO (n)")
-        is_woman = input('1.- Tu maestre es mujer? ').upper().startswith('Y')
+        print(self.matrix.index)
+        windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko('1.- Tu maestre es mujer? ')
+        is_woman = _answerOfTheQuestionInTheDamnedWindow
         self.questions = list()
         self.hairColorQuestions = [
             ['Tu maestre tiene el cabello de color extravagante?', 'haveFlamboyantColorHair'],
@@ -46,18 +101,18 @@ class GuessWho(KnowledgeEngine):
         ]
         if not is_woman:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([False])]
-            # print(self.matrix)
             questions = genericQuestions('profe')
             questions.extend(menQuestions())
             r.shuffle(questions)
+            print(self.matrix.index)
             for val in questions:
                 yield DefiningQuestion(question=val[0], attrib=val[1])
         else:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([True])]
-            # print(self.matrix)
             questions = genericQuestions('maistra')
             questions.extend(womenQuestions())
             r.shuffle(questions)
+            print(self.matrix.index)
             for val in questions:
                 yield DefiningQuestion(question=val[0], attrib=val[1])
 
@@ -73,15 +128,19 @@ class GuessWho(KnowledgeEngine):
     @Rule(Action('next-question'),
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def human_choice(self, nq, tq):
-        answer = input('%s.- %s ' % (tq+2, self.questions[tq][0])).upper().startswith('Y')
+        windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko('%s.- %s ' % (tq+2, self.questions[tq][0]))
+        answer = _answerOfTheQuestionInTheDamnedWindow
         self.matrix = self.matrix[self.matrix[self.questions[tq][1]] == answer]
+        print(self.matrix.index)
         self.modify(nq, total_questions=tq+1)
-        if("canas" in self.questions[tq][0] or "color" in self.questions[tq][0] and answer == False):
+        if(("canas" in self.questions[tq][0] or "color" in self.questions[tq][0]) and answer == False):
             self.declare(Action('add-hair-color-questions'))
         if("vello facial" in self.questions[tq][0] and answer == True):
             self.declare(Action('add-more-questions-about-facial-hair'))
         if(len(self.matrix)==1):
             self.declare(Action('guessing-character'))
+        elif len(self.matrix)==0:
+            self.declare(Action('failed'))
 
     @Rule(AS.f1 << Action('next-question'))
     def _human_choice(self, f1):
@@ -115,6 +174,18 @@ class GuessWho(KnowledgeEngine):
         self.retract(f1)
         self.declare(Action('next-question'))
 
+    @Rule(Action('failed'),
+            AS.f1 << Action('next-question'))
+    def machine_failed(self, f1):
+        self.retract(f1)
+        print("Error 404, character not found :c")
+        confirm = input('Os gustaria agregar a ese personaje a mi base de datos? ').upper().startswith('Y')
+        if confirm:
+            openForm()            
+            self.halt()
+        else:
+            self.halt()
+
     @Rule(Action('guessing-character'), 
             AS.f1 << Action('next-question'),
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
@@ -122,10 +193,10 @@ class GuessWho(KnowledgeEngine):
         self.retract(f1)
         root = Tk()
         app = Window(root)
-        root.wm_title("Tkinter window")
-        w = Label(root, text='En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]), font=("Helvetica", 16))
+        root.wm_title("Guess Who?")
+        w = Label(root, text='En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]), font=("Helvetica", 22))
         w.pack()
-        root.geometry("600x349")
+        root.geometry("1024x620")
         root.mainloop()
         self.halt()
 
@@ -146,31 +217,7 @@ if __name__ == '__main__':
             gw.reset()
             gw.run()
         elif ans == 2:
-            qualities = ['Is woman? ', 'Looks young? ', 'Have long hair? ', 'Have curly hair? ', 'Have flamboyant color hair? ', 'Have gray hair? ', 'Have black hair? ', 'Have brown hair? ', 'Is blonde? ', 'Is redhead? ', 'Use glasses? ', 'Is nigga? ', 'Is tall? ', 'Is thin? ']
-            allAnswers = []
-            allAnswers.append(input('Name: '))
-            for val in qualities:
-                allAnswers.append(input(val).upper().startswith('Y'))
-            if allAnswers[1] != True:
-                if input('Have facial hair? ').upper().startswith('Y'):
-                    allAnswers.append(True)
-                    allAnswers.append(input('Have beard? ').upper().startswith('Y'))
-                    allAnswers.append(input('Have moustache? ').upper().startswith('Y'))
-                else:
-                    allAnswers.append(False)
-                    allAnswers.append(False)
-                    allAnswers.append(False)
-                allAnswers.append(False)
-            else:
-                allAnswers.append(False)
-                allAnswers.append(False)
-                allAnswers.append(False)
-                if input('Use makeup? ').upper().startswith('Y'):
-                    allAnswers.append(True)                
-                else:
-                    allAnswers.append(False)
-            newChar = Character(allAnswers[0], allAnswers[1], allAnswers[2], allAnswers[3], allAnswers[4], allAnswers[5], allAnswers[6], allAnswers[7], allAnswers[8], allAnswers[9], allAnswers[10], allAnswers[11], allAnswers[12], allAnswers[13], allAnswers[14], allAnswers[15], allAnswers[16], allAnswers[17], allAnswers[18])
-            print(addCharacter(newChar.getQualities()))
+            openForm()
         else:
             exitGame = False
         input('Press Enter key...')

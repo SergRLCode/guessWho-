@@ -7,7 +7,7 @@ mongo = MongoClient()
 character = mongo.Expsys.character
 
 def addCharacter(data):
-    character.insert(data)
+    character.insert_one(data)
     return('%s added!' % data['name'])
 
 def getNames():
@@ -52,7 +52,7 @@ def genericQuestions(gender):
 
 def menQuestions():
     menQuestions = [
-        ['Tu profe tiene vello facial?', 'haveFacialHair'],
+        ['Tu profe tiene vello facial?', 'haveFacialHair']
     ]
     return menQuestions
 
