@@ -22,7 +22,7 @@ class Character():
             self.useMakeup = bool(useMakeup)
 
     def getQualities(self):
-        characterDict = {
+        return {
             'name': self.name,
             'isWoman': self.isWoman,
             'looksYoung': self.looksYoung,
@@ -43,4 +43,3 @@ class Character():
             'haveMoustache': self.haveMoustache,
             'useMakeup': self.useMakeup
         }
-        return characterDict

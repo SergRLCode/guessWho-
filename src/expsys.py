@@ -1,13 +1,13 @@
 from Character import Character
-from pyknow import *
+from experta import *
 from tkinter import *
 from PIL import Image, ImageTk
-from pyknow.fact import *
+from experta.fact import *
 import random as r
 from data import *
 import os
 
-_answerOfTheQuestionInTheDamnedWindow = bool()
+selectedAnswerFromUser = bool()
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -37,7 +37,6 @@ def openForm():
         entriesList[index].grid(row=index+1, column=1)
 
     def getData():
-        print(entriesList[0].get())
         newChar = Character(entriesList[0].get(),
             entriesList[1].get().upper().startswith('Y'), entriesList[2].get().upper().startswith('Y'),
             entriesList[3].get().upper().startswith('Y'), entriesList[4].get().upper().startswith('Y'),
@@ -56,23 +55,6 @@ def openForm():
     
     form.mainloop()
 
-def windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko(question):
-    form = Tk()
-    form.title("Question")
-    frame = Frame(master=form, width=800, height=600)
-    Label(master=form, text=question, font=("Helvetica", 16)).grid(column=0)
-    def true():
-        global _answerOfTheQuestionInTheDamnedWindow
-        _answerOfTheQuestionInTheDamnedWindow = True
-        form.destroy()
-    def false():
-        global _answerOfTheQuestionInTheDamnedWindow
-        _answerOfTheQuestionInTheDamnedWindow = False
-        form.destroy()
-    Button(master=form, text='YES', command=true).grid(row=1, column=0)
-    Button(master=form, text='NO', command=false).grid(row=1, column=1)
-    form.mainloop()
-
 class TotalQuestions(Fact):
     total_questions = Field(int, default = 0)
 
@@ -86,22 +68,20 @@ class Action(Fact):
 class GuessWho(KnowledgeEngine):
     
     @DefFacts()
-    def defining_questions(self):
+    def defining_questions(self, is_woman):
         self.matrix = getMatrix()
-        print(self.matrix.index)
-        windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko('1.- Tu maestre es mujer? ')
-        is_woman = _answerOfTheQuestionInTheDamnedWindow
+        # print(self.matrix.index)
         self.questions = list()
         self.hairColorQuestions = [
-            ['Tu maestre tiene el cabello de color extravagante?', 'haveFlamboyantColorHair'],
-            ['Tu maestre tiene el cabello de color rubio?', 'isBlonde'],
-            ['Tu maestre tiene el cabello de color pelirrojo?', 'isRedhead'],
-            ['Tu maestre tiene canas?', 'haveGreyHair'],
-            ['Tu maestre tiene el cabello de color cafe?', 'haveBrownHair']
+            ['¿Tu docente tiene el cabello de color extravagante?', 'haveFlamboyantColorHair'],
+            ['¿Tu docente tiene el cabello de color rubio?', 'isBlonde'],
+            ['¿Tu docente tiene el cabello de color pelirrojo?', 'isRedhead'],
+            ['¿Tu docente tiene canas?', 'haveGreyHair'],
+            ['¿Tu docente tiene el cabello de color cafe?', 'haveBrownHair']
         ]
         if not is_woman:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([False])]
-            questions = genericQuestions('profe')
+            questions = genericQuestions('M')
             questions.extend(menQuestions())
             r.shuffle(questions)
             print(self.matrix.index)
@@ -109,7 +89,7 @@ class GuessWho(KnowledgeEngine):
                 yield DefiningQuestion(question=val[0], attrib=val[1])
         else:
             self.matrix = self.matrix[self.matrix['isWoman'].isin([True])]
-            questions = genericQuestions('maistra')
+            questions = genericQuestions('F')
             questions.extend(womenQuestions())
             r.shuffle(questions)
             print(self.matrix.index)
@@ -128,18 +108,21 @@ class GuessWho(KnowledgeEngine):
     @Rule(Action('next-question'),
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def human_choice(self, nq, tq):
-        windowAboutQuestionAnswersAndIDontKnowMoreBecauseImLostInMindImCriko('%s.- %s ' % (tq+2, self.questions[tq][0]))
-        answer = _answerOfTheQuestionInTheDamnedWindow
+        answer = bool(input('%s.- %s ' % (tq+2, self.questions[tq][0])))
         self.matrix = self.matrix[self.matrix[self.questions[tq][1]] == answer]
-        print(self.matrix.index)
+        # print(self.matrix.index)
         self.modify(nq, total_questions=tq+1)
-        if(("canas" in self.questions[tq][0] or "color" in self.questions[tq][0]) and answer == False):
+        
+        if (("canas" in self.questions[tq][0] or "color" in self.questions[tq][0]) and answer == False):
             self.declare(Action('add-hair-color-questions'))
-        if("vello facial" in self.questions[tq][0] and answer == True):
+        
+        if "vello facial" in self.questions[tq][0] and answer == True:
             self.declare(Action('add-more-questions-about-facial-hair'))
-        if(len(self.matrix)==1):
+        
+        if len(self.matrix) == 1:
             self.declare(Action('guessing-character'))
-        elif len(self.matrix)==0:
+        
+        elif len(self.matrix) == 0:
             self.declare(Action('failed'))
 
     @Rule(AS.f1 << Action('next-question'))
@@ -166,8 +149,8 @@ class GuessWho(KnowledgeEngine):
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def addMoreQuestions(self, f1, nq, tq):
         self.retract(f1)
-        self.questions.insert(tq, ['Tu profe tiene barba?', 'haveBeard'])
-        self.questions.insert(tq+1, ['Tu profe tiene bigote?', 'haveMoustache'])
+        self.questions.insert(tq, ['¿Tu docente tiene barba?', 'haveBeard'])
+        self.questions.insert(tq+1, ['¿Tu docente tiene bigote?', 'haveMoustache'])
 
     @Rule(AS.f1 << Action('add-more-questions-about-facial-hair'))
     def _add_more_questions(self, f1):
@@ -182,22 +165,14 @@ class GuessWho(KnowledgeEngine):
         confirm = input('Os gustaria agregar a ese personaje a mi base de datos? ').upper().startswith('Y')
         if confirm:
             openForm()            
-            self.halt()
-        else:
-            self.halt()
+        self.halt()
 
     @Rule(Action('guessing-character'), 
             AS.f1 << Action('next-question'),
             AS.nq << TotalQuestions(total_questions=MATCH.tq))
     def guessing_character(self, f1, nq, tq):
         self.retract(f1)
-        root = Tk()
-        app = Window(root)
-        root.wm_title("Guess Who?")
-        w = Label(root, text='En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]), font=("Helvetica", 22))
-        w.pack()
-        root.geometry("1024x620")
-        root.mainloop()
+        print('En %s preguntas puedo adivinar que tu personaje es %s ' % (tq+1, self.matrix.index[0]))
         self.halt()
 
 if __name__ == '__main__':

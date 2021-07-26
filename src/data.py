@@ -38,41 +38,24 @@ def getMatrix():
     return matrix
 
 def genericQuestions(gender):
-    genericQuestions = [
-        ['Tu %s tiene cabello largo?'%gender, 'haveLongHair'],
-        ['Tu %s tiene cabello chino?'%gender, 'haveCurlyHair'],
-        ['Tu %s tiene el cabello de color negro?'%gender, 'haveBlackHair'],        
-        ['Tu %s usa lentes?'%gender, 'useGlasses'],
-        ['Tu %s es de piel morena?'%gender, 'isNigga'],
-        ['Tu %s es alt%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isTall'],
-        ['Tu %s es se ve joven?'%gender, 'looksYoung'],
-        ['Tu %s es delgad%s?'%(gender, 'o' if gender=='profe' else 'a'), 'isThin']
+    char = 'o' if gender == 'M' else 'a'
+    return [
+        ['Tu docente tiene cabello largo?', 'haveLongHair'],
+        ['Tu docente tiene cabello chino?', 'haveCurlyHair'],
+        ['Tu docente tiene el cabello de color negro?', 'haveBlackHair'],        
+        ['Tu docente usa lentes?', 'useGlasses'],
+        ['Tu docente es de piel morena?', 'isNigga'],
+        ['Tu docente es alt%s?'%char, 'isTall'],
+        ['Tu docente es se ve joven?', 'looksYoung'],
+        ['Tu docente es delgad%s?'%char, 'isThin']
     ]
-    return genericQuestions
 
 def menQuestions():
-    menQuestions = [
+    return [
         ['Tu profe tiene vello facial?', 'haveFacialHair']
     ]
-    return menQuestions
 
 def womenQuestions():
-    womenQuestions = [
+    return [
         ['Tu maistra usa maquillaje?', 'useMakeup']
     ]
-    return womenQuestions
-
-# x = 0.4
-# for x in range(0, 10):
-#     print('-', end='\r')
-#     t.sleep(x)
-#     print('\\', end='\r')
-#     t.sleep(x)
-#     print('|', end='\r')
-#     t.sleep(x)
-#     print('/', end='\r')
-#     t.sleep(x)
-
-# print(deleteQuestion(genericQuestions('profe'), colsOneAttrib(getMatrix())))
-
-# deleteQuestion(self.questions, colsOneAttrib(self.matrix))
