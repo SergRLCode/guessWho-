@@ -2,7 +2,7 @@ experta==1.9.4
 frozendict==1.2
 numpy==1.20.0
 pandas==1.2.1
-Pillow==8.1.0
+Pillow==9.0.1
 pymongo==3.11.2
 python-dateutil==2.8.1
 pytz==2021.1
